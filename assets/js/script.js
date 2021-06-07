@@ -13,25 +13,58 @@
 // The core weather app
 // =========================================
 var weatherApp = (function() {
-    // Function to perform API call
 
+    // Performs the API calls and sends the data where needed
     function getWeather (loc) {
-        let apiUrl = "https://api.openweathermap.org/data/2.5/weather?q=" + loc + "&appid=157647bc87fa3aa322f07fdde14674c8";
+        let apiUrl = "https://api.openweathermap.org/data/2.5/weather?q=" + loc + "&units=imperial&appid=157647bc87fa3aa322f07fdde14674c8";
+        let isError = false;
+        let currentWeather = {};
+        let fiveDayWeather = {};
 
         fetch(apiUrl)
             .then(response => {
                 if (!response.ok) {
-                    // An error occurred
-                    return false;
+                    isError = true; // mark if there's a problem
                 }
-
                 return response.json();
             })
             .then(data => {
-                console.log(data);
-            })
+                currentWeather = data;
+            });        
+        // Stop if an error occurred
+        if (isError) {
+            return; 
+        }
+
+        locSearch.saveSearch(loc);
+
+        // Second API Call for the 5 day forecast
+        apiUrl = "https://api.openweathermap.org/data/2.5/forecast?q=" + loc + "&cnt=5&units=imperial&appid=157647bc87fa3aa322f07fdde14674c8";
+
+        fetch(apiUrl)
+        .then(response => {
+            if (!response.ok) {
+                // We assume things are okay if the last call worked (big mistake?)
+            }
+            return response.json();
+        })
+        .then(data => {
+            fiveDayWeather = data;
+        });
+
+
     }
-    // Function to draw current conditions to current forecast
+
+    function drawCurrent (weather) {
+        // current weather drawing here
+        let card = $("#current-forecast");
+        let h = $("<h2>Current Conditions in " + weather.name + "</h2>");
+        let t = $("<")
+    }
+
+    function drawFiveDay (weather) {
+        // Five day forecast drawing goes here
+    }
 
     // Function to call and draw future conditions
     return {
@@ -46,42 +79,41 @@ var weatherApp = (function() {
 // =========================================
 var locSearch = (function() {
 
-    // Function to create event listeners
+    // Handles the 
     function historyClick(event) {
         event.preventDefault();
+        console.log(event.target.type);
+        if (event.target.type != "submit") {return;} // Stop if we didn't click a button
+        let srch = event.target.textContent;
+        weatherApp.getWeather(srch);
     }
 
     // Handles the search button clicks
     function srchClick(event) {
-        event.preventDefault();
-
-        console.log("Clicky clicky");
+        event.preventDefault();        
         let srch = $("#search-bar").val();
-
-        saveSearch(srch);
+        console.log(srch);
+        if (srch == "") {return;} // Stop if the field is blank
         weatherApp.getWeather(srch);
     }
-    // Function to load searches to memory
 
-    // Function to store searches in an array
+    // Stores successful searches to the history
     function saveSearch (loc) {
         let history = [];
-        console.log($(".past-search"));
         $(".past-search").each(function(i) {
             history[i] = $(this).text();
-            console.log("history[" + i +"] = " + history[i]);
         });
         history.push(loc);
         if (history.length > 10) {
             history.shift();
         };
 
+        // Save the array and reload the history
         localStorage.setItem("history", JSON.stringify(history));
         populateHistory();
     }
-    // Function to clean searches and submit to the core app
 
-    // Function to create and populate list of searches
+    // Function to create and populate list of previous searches
     function populateHistory() {
         let history = JSON.parse(localStorage.getItem("history"));
         
@@ -89,8 +121,7 @@ var locSearch = (function() {
         let hContainer = $("#search-history");
         hContainer.empty();
         for (var i = 0; i < history.length; i++) {
-            let j = $("<button class='past-search btn-success col-12'>" + history[i] + "</button>");
-            console.log(j);
+            let j = $("<button class='past-search btn btn-success col-12'>" + history[i] + "</button>");
             hContainer.prepend(j);
         }
     }
@@ -98,6 +129,7 @@ var locSearch = (function() {
     return {
         historyClick: historyClick,
         srchClick: srchClick,
+        saveSearch: saveSearch,
         populateHistory: populateHistory
     }
 })();
@@ -110,7 +142,4 @@ var locSearch = (function() {
 
 $("#search-history").on('click', locSearch.historyClick);
 $("#search-btn").on('click', locSearch.srchClick);
-
-console.log("Begins!");
-
 locSearch.populateHistory();

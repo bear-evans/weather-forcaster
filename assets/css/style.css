@@ -5,10 +5,10 @@ Universal
 :root {
     --dark: rgba(0,0,0);
     --light: rgba(255,255,255);
+    --dark-blue: rgb(7, 7, 48);
 }
 
 body {
-    width:100vw;
     min-height: 97vh;
 }
 
@@ -21,23 +21,46 @@ body {
 Header
 ============================= */
 #header {
-    background-color: var(--dark);
+    background-color: var(--dark-blue);
     color: var(--light);
     text-align: center;
-
-    height: 10vh;
 }
 
 /* =============================
 Location Bar
 ============================= */
 #location {
-    background-color: rgb(199, 236, 230);
+    padding: 0;
+    text-align: center;
 }
+
+.past-search {
+    margin-bottom: 0.4em;
+}
+
 /* =============================
 Forecast
 ============================= */
 
+.data-field {
+    font-weight: bold;
+}
+
+.forecast-panel {
+    display: flex;
+    flex-direction: column;
+    width: 250px;
+    color:var(--light);
+    background-color: var(--dark-blue);
+    border-radius: 5px;
+    padding: 10px;
+}
+
+#future-forecast {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
 /* =============================
 Footer
 ============================= */
