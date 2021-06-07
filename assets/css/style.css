@@ -1,0 +1,54 @@
+/* =============================
+Universal
+============================= */
+
+:root {
+    --dark: rgba(0,0,0);
+    --light: rgba(255,255,255);
+}
+
+body {
+    width:100vw;
+    min-height: 97vh;
+}
+
+#wrapper {
+    position: relative;
+    width: 100%;
+    min-height: 100%;
+}
+/* =============================
+Header
+============================= */
+#header {
+    background-color: var(--dark);
+    color: var(--light);
+    text-align: center;
+
+    height: 10vh;
+}
+
+/* =============================
+Location Bar
+============================= */
+#location {
+    background-color: rgb(199, 236, 230);
+}
+/* =============================
+Forecast
+============================= */
+
+/* =============================
+Footer
+============================= */
+
+#footer {
+    position: absolute;
+    bottom: 0;
+    height:3vh;
+
+    font-size: .5em;
+    text-align:center;
+    color: var(--light);
+    background-color: var(--dark);
+}
