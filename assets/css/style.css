@@ -90,3 +90,17 @@ Footer
     color: var(--light);
     background-color: var(--dark);
 }
+
+/* =============================
+Responsive Alterations
+============================= */
+
+@media screen and (max-width: 768px) {
+    #future-forecast {
+        flex-direction: column;
+    }
+
+    .forecast-panel {
+        width: 90%;
+    }
+}
