@@ -49,17 +49,32 @@ Forecast
 .forecast-panel {
     display: flex;
     flex-direction: column;
-    width: 250px;
-    color:var(--light);
-    background-color: var(--dark-blue);
+    width: 150px;
     border-radius: 5px;
     padding: 10px;
+    margin-left:auto;
+    margin-right:auto;
+    font-size: .75em;
+    color:var(--light);
+    background-color: var(--dark-blue);
 }
 
 #future-forecast {
     display: flex;
     flex-direction: row;
     width: 100%;
+}
+
+.uv-high {
+    color:crimson;
+}
+
+.uv-med {
+    color:orange;
+}
+
+.uv-low {
+    color: green;
 }
 /* =============================
 Footer

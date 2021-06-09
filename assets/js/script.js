@@ -14,56 +14,85 @@
 // =========================================
 var weatherApp = (function() {
 
-    // Performs the API calls and sends the data where needed
-    function getWeather (loc) {
-        let apiUrl = "https://api.openweathermap.org/data/2.5/weather?q=" + loc + "&units=imperial&appid=157647bc87fa3aa322f07fdde14674c8";
-        let isError = false;
-        let currentWeather = {};
-        let fiveDayWeather = {};
-
-        fetch(apiUrl)
+    // Grabs the coordinates from another API call because Onecall does not handle city names
+    async function getCoords(loc) {
+        let apiUrl = "https://api.openweathermap.org/data/2.5/weather?q=" + loc + "&appid=157647bc87fa3aa322f07fdde14674c8";
+        var coords = await fetch(apiUrl)
             .then(response => {
                 if (!response.ok) {
-                    isError = true; // mark if there's a problem
+                    throw new Error("Something went wrong fetching the location data");
                 }
                 return response.json();
             })
             .then(data => {
-                currentWeather = data;
-            });        
-        // Stop if an error occurred
-        if (isError) {
-            return; 
-        }
+                coords = [data.coord.lat, data.coord.lon];
+                return coords;
+            })
+            .catch (error => {
+                console.error(error);
+            });
 
+            return coords;
+    }
+
+    // Performs the API calls and sends the data where needed
+    async function getWeather (loc) {
+        let coords = await getCoords(loc);
         locSearch.saveSearch(loc);
 
-        // Second API Call for the 5 day forecast
-        apiUrl = "https://api.openweathermap.org/data/2.5/forecast?q=" + loc + "&cnt=5&units=imperial&appid=157647bc87fa3aa322f07fdde14674c8";
-
+        // Calls openweather onecall and grabs the data
+        apiUrl = "https://api.openweathermap.org/data/2.5/onecall?lat=" + coords[0] + "&lon=" + coords[1] + "&units=imperial&appid=157647bc87fa3aa322f07fdde14674c8";
         fetch(apiUrl)
         .then(response => {
             if (!response.ok) {
-                // We assume things are okay if the last call worked (big mistake?)
+                throw new Error("Something went wrong fetching the weather data");
             }
             return response.json();
         })
         .then(data => {
-            fiveDayWeather = data;
+            drawCurrent(loc, data);
+            drawFiveDay(data);
+        })
+        .catch (error => {
+            console.error(error);
         });
-
-
     }
 
-    function drawCurrent (weather) {
-        // current weather drawing here
+    // Draws the current weather conditions from the JSON response
+    function drawCurrent (location, weather) {
         let card = $("#current-forecast");
-        let h = $("<h2>Current Conditions in " + weather.name + "</h2>");
-        let t = $("<")
+        let date = moment().format("MM[/]DD[/]YYYY");
+        console.log(weather);
+
+        card.empty();
+        card.append($("<img src='http://openweathermap.org/img/wn/" + weather.current.weather[0].icon + "@2x.png' style='float: right;'>"));
+        card.append($("<h2>Current Conditions in " + location + " (" + date + ")</h2>"));
+        card.append($("<p><span class='data-field'>Temperature:</span> " + weather.current.temp + "°F</p>"));
+        card.append($("<p><span class='data-field'>Wind:</span> " + weather.current.wind_speed + " MPH</p>"));
+        card.append($("<p><span class='data-field'>Humidity:</span> " + weather.current.humidity + "%</p>"));
+        if (weather.current.uvi > 6) {
+            card.append($("<p><span class='data-field'>UV Index:</span> <span class='uv-high'>" + weather.current.uvi + "</span></p>"));
+        } else if (weather.current.uvi > 3) {
+            card.append($("<p><span class='data-field'>UV Index:</span> <span class='uv-med'>" + weather.current.uvi + "</span></p>"));
+        } else {
+            card.append($("<p><span class='data-field'>UV Index:</span> <span class='uv-low'>" + weather.current.uvi + "</span></p>"));
+        }
     }
 
+    // Cycles through the forecast panels, drawing weather data to them
     function drawFiveDay (weather) {
-        // Five day forecast drawing goes here
+        $(".forecast-panel").each(
+            function(i) {
+                let date = moment().add(i, 'days').format("MM[/]DD[/]YYYY");
+                $(this).empty();
+                $(this).append(date);
+                $(this).append($("<img src='http://openweathermap.org/img/wn/" + weather.daily[i].weather[0].icon + "@2x.png' style='float: right;'>"));
+                $(this).append($("<p><span class='data-field'>Temperature:</span> " + weather.daily[i].temp.day + "°F</p>"));
+                $(this).append($("<p><span class='data-field'>Wind:</span> " + weather.daily[i].wind_speed + " MPH</p>"));
+                $(this).append($("<p><span class='data-field'>Humidity:</span> " + weather.daily[i].humidity + "%</p>"));
+        
+            }
+        )
     }
 
     // Function to call and draw future conditions
@@ -75,14 +104,13 @@ var weatherApp = (function() {
 // =========================================
 // Search Handler
 // -----------------------------------------
-// The Handles the search boxes and history
+// Handles the search boxes and history
 // =========================================
 var locSearch = (function() {
 
-    // Handles the 
+    // Handles the history field clicks
     function historyClick(event) {
         event.preventDefault();
-        console.log(event.target.type);
         if (event.target.type != "submit") {return;} // Stop if we didn't click a button
         let srch = event.target.textContent;
         weatherApp.getWeather(srch);
@@ -92,7 +120,6 @@ var locSearch = (function() {
     function srchClick(event) {
         event.preventDefault();        
         let srch = $("#search-bar").val();
-        console.log(srch);
         if (srch == "") {return;} // Stop if the field is blank
         weatherApp.getWeather(srch);
     }
@@ -121,7 +148,7 @@ var locSearch = (function() {
         let hContainer = $("#search-history");
         hContainer.empty();
         for (var i = 0; i < history.length; i++) {
-            let j = $("<button class='past-search btn btn-success col-12'>" + history[i] + "</button>");
+            let j = $("<button class='past-search btn btn-success btn-block'>" + history[i] + "</button>");
             hContainer.prepend(j);
         }
     }
